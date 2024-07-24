@@ -3,6 +3,15 @@ from telebot.formatting import hcode
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 from datetime import datetime
 
+# API для отправки сообщения о переводе
+# TG -> DS / DS -> Mine / ...
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import uvicorn
+app = FastAPI()
+# Для запуска API в потоке
+from threading import Thread
+
 from call2api import *
 from db import *
 
@@ -174,4 +183,34 @@ def checks(message):
 		help(message)
 
 
+# API для переводов TG->DS / ...
+class Transfer_callback(BaseModel):
+	token: str
+	src_nick: str
+	dst_nick: str
+	amount: str
+@app.post('/api/transfer_callback/')
+def transfer_callback(it: Transfer_callback):
+	token, src_nick, dst_nick, amount = it.token, it.src_nick, it.dst_nick, it.amount
+	db = read()
+	if token in db['tokens']:
+		dst_id = user_in_db(API_TOKEN, nick=dst_nick)
+		tg_dst = int(get_tg(API_TOKEN, id=dst_id))
+		print(tg_dst)
+		bot.send_message(tg_dst, f'''Вам перевели {hcode(amount)} CDM.
+
+Отправитель: {hcode(src_nick)}''', parse_mode='HTML')
+		return 200
+	else:
+		return 'Error'
+
+def run_api():
+	uvicorn.run(app, host='127.0.0.1', port=2222)
+
+# Запускаем API для переводов
+api = Thread(target=run_api)
+api.Daemon = True
+api.start()
+
+# Запускаем бота
 bot.infinity_polling()

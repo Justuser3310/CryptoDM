@@ -108,4 +108,9 @@ def get_passwd(token, id):
   data = {'token': token, 'id': id}
   return call('api/get_passwd/', data)
 
+def transfer_callbak(addr, token, src_id, amount):
+	amount = str(amount)
+	data = {'token': token, 'src_id': src_id, 'amount': amount}
+	return call(addr + 'api/get_passwd/', data)
+
 #print( user_in_db('ee77b9d8-44f3-4e01-a702-69d5524ee50b', '1234') )
