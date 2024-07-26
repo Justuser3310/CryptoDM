@@ -11,8 +11,11 @@ def hash(text):
 	text = str(text)
 	return xxh32(text).hexdigest()
 
-def call(api_url, data):
-	response = post(url_pre + api_url, data=dumps(data))
+def call(api_url, data, pre=True):
+	if pre:
+		response = post(url_pre + api_url, data=dumps(data))
+	else:
+		response = post(api_url, data=dumps(data))
 	print(response.status_code)
 	print(response.text)
 	return response.text.replace('"', '')
@@ -108,9 +111,10 @@ def get_passwd(token, id):
   data = {'token': token, 'id': id}
   return call('api/get_passwd/', data)
 
-def transfer_callbak(addr, token, src_id, amount):
+def transfer_callback(addr, token, src_nick, dst_nick, amount):
 	amount = str(amount)
-	data = {'token': token, 'src_id': src_id, 'amount': amount}
-	return call(addr + 'api/get_passwd/', data)
+	data = {'token': token, 'src_nick': src_nick, 'dst_nick': dst_nick, 'amount': amount}
+	print(addr + 'api/transfer_callback/')
+	return call(addr + 'api/transfer_callback/', data, pre=False)
 
 #print( user_in_db('ee77b9d8-44f3-4e01-a702-69d5524ee50b', '1234') )

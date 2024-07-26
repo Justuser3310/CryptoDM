@@ -104,6 +104,8 @@ def login(message):
 		elif get_passwd(API_TOKEN, id) == hash(passwd):
 			if update_tg(API_TOKEN, id, message.chat.id) == 'OK':
 				bot.reply_to(message, 'Вы успешно авторизовались!')
+			else:
+				bot.reply_to(message, 'Что-то пошло не так...')
 		else:
 			bot.reply_to(message, 'Пароль не совпадает')
 	else:
@@ -169,9 +171,14 @@ def pay(message):
 				elif status == 'OK':
 					bot.reply_to(message, f'''Успешно переведено {hcode(amount)} CDM.
 Адресат: {hcode(nick)}''', parse_mode='HTML')
-					bot.send_message(int(get_tg(API_TOKEN, dst_id)), f'''Вам перевели {hcode(amount)} CDM.
 
-Отправитель: {hcode(get_nick(API_TOKEN, src_id))}''', parse_mode='HTML')
+					tg_dst = get_tg(API_TOKEN, dst_id)
+					ds_dst = get_ds(API_TOKEN, dst_id)
+					src_nick = get_nick(API_TOKEN, src_id)
+					if tg_dst != 'null':
+						transfer_callback('http://127.0.0.1:2222/', API_TOKEN, src_nick, nick, amount)
+					elif ds_dst != 'null':
+						transfer_callback('http://127.0.0.1:3333/', API_TOKEN, src_nick, nick, amount)
 		else:
 			bot.reply_to(message, '/pay ник количество')
 
@@ -182,15 +189,14 @@ def checks(message):
 	elif message.text == 'Помощь':
 		help(message)
 
-
 # API для переводов TG->DS / ...
-class Transfer_callback(BaseModel):
+class Transfer_callback_api(BaseModel):
 	token: str
 	src_nick: str
 	dst_nick: str
 	amount: str
 @app.post('/api/transfer_callback/')
-def transfer_callback(it: Transfer_callback):
+def transfer_callback_api(it: Transfer_callback_api):
 	token, src_nick, dst_nick, amount = it.token, it.src_nick, it.dst_nick, it.amount
 	db = read()
 	if token in db['tokens']:
