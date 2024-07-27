@@ -60,6 +60,7 @@ def help(message):
 /login ник пароль - Войти в аккаунт
 /unreg            - Выйти из аккаунта
 /passwd пароль    - Смена пароля
+/nick ник         - Смена ника
 /bal              - Баланс
 /pay ник сумма    - Перевод
 """)}
@@ -140,6 +141,19 @@ def passwd(message):
 		else:
 			bot.reply_to(message, '/passwd новый_пароль')
 
+
+@bot.message_handler(commands=['nick'])
+def nick(message):
+	if checkauth(message):
+		if len(message.text.split()) == 2:
+			com, new_nick = message.text.split()
+			id = user_in_db(API_TOKEN, tg=message.chat.id)
+			if update_nick(API_TOKEN, id, new_nick) == 'OK':
+				bot.reply_to(message, 'Ник успешно изменён')
+			else:
+				bot.reply_to(message, 'Что-то пошло не так...')
+		else:
+			bot.reply_to(message, '/nick новый_ник')
 
 @bot.message_handler(commands=['bal'])
 def bal(message):

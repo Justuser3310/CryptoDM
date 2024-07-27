@@ -59,8 +59,8 @@ async def checkauth(message, reg = False):
 		pass
 	else:
 		await send('''Пожалуйста, зарегистрируйтесь или войдите:
-`!reg Nickname 1234567890`
-`!login Nickname 1234567890`
+`/reg Nickname 1234567890`
+`/login Nickname 1234567890`
 
 Ник вводить желательно игровой.
 Пароль любой.''')
@@ -70,7 +70,7 @@ def command(com, message):
 	if message.author != bot.user:
 		# Если не публичный чат
 		if message.channel.type != discord.ChannelType.text:
-			if message.content.startswith(f'!{com}'):
+			if message.content.startswith(f'/{com}'):
 				return True
 
 async def help(message):
@@ -83,6 +83,7 @@ async def help(message):
 /login ник пароль - Войти в аккаунт
 /unreg            - Выйти из аккаунта
 /passwd пароль    - Смена пароля
+/nick ник         - Смена ника
 /bal              - Баланс
 /pay ник сумма    - Перевод
 `
@@ -141,7 +142,7 @@ async def login(message):
 		else:
 			await send('Пароль не совпадает')
 	else:
-		await send('!login ник пароль')
+		await send('/login ник пароль')
 
 async def unreg(message):
 	send = message.channel.send
@@ -160,7 +161,20 @@ async def passwd(message):
 			else:
 				await send('Что-то пошло не так...')
 		else:
-			await send('!passwd пароль')
+			await send('/passwd пароль')
+
+async def nick(message):
+	send = message.channel.send
+	if await checkauth(message):
+		if len(message.content.split()) == 2:
+			com, nicl = message.content.split()
+			id = user_in_db(API_TOKEN, ds=message.author.id)
+			if update_nick(API_TOKEN, id, new_nick) == 'OK':
+				await send('Ник успешно изменён')
+			else:
+				await send('Что-то пошло не так...')
+		else:
+			await send('/nick ник')
 
 async def pay(message):
 	send = message.channel.send
@@ -191,7 +205,7 @@ async def pay(message):
 						print(22222)
 						transfer_callback('http://127.0.0.1:2222/', API_TOKEN, src_nick, nick, amount)
 		else:
-			await send('!pay ник количество')
+			await send('/pay ник количество')
 
 @bot.event
 async def on_message(message):
